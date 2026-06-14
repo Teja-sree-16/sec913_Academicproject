@@ -4,11 +4,11 @@ from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 import requests
 import os
 import subprocess
-from config.settings import MONGO_DATABASE, MONGO_URL
+from config.settings import MONGO_DATABASE, MONGO_URL, SPRING_BOOT_URL
 
 router = APIRouter()
 
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = SPRING_BOOT_URL
 PSQL_PATH = r"C:\Program Files\PostgreSQL\18\bin\psql.exe"
 
 
