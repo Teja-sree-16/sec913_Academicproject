@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {  Routes, Route, Navigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -73,32 +73,35 @@ function App() {
       : <Navigate to={auth.token ? "/unauthorized" : "/login"} replace />;
 
   return (
-    <BrowserRouter>
-      <Navbar
-        token={auth.token}
-        role={auth.role}
-        onLogout={handleLogout}
+  <>
+    <Navbar token={auth.token} role={auth.role} onLogout={handleLogout} />
+    <ToastContainer toasts={toasts} />
+
+    <Routes>
+      <Route
+        path="/"
+        element={
+          auth.token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        }
       />
-      <ToastContainer toasts={toasts} />
+      <Route path="/login" element={<Login onLogin={handleLogin} />} />
+      <Route path="/signup" element={<Signup />} />
 
-      <Routes>
-        <Route path="/" element={auth.token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<Signup />} />
+      <Route path="/dashboard" element={requireAuth(<Dashboard onToast={showToast} />)} />
+      <Route path="/add-component" element={requireAdmin(<AddComponent />)} />
+      <Route path="/components" element={requireAuth(<ViewComponents onToast={showToast} />)} />
+      <Route path="/categories" element={requireAuth(<Categories onToast={showToast} />)} />
+      <Route path="/search" element={requireAuth(<SearchComponents onToast={showToast} />)} />
+      <Route path="/analytics" element={requireAuth(<Analytics onToast={showToast} />)} />
+      <Route path="/component/:id" element={requireAuth(<ComponentDetails onToast={showToast} />)} />
 
-        <Route path="/dashboard" element={requireAuth(<Dashboard onToast={showToast} />)} />
-        <Route path="/add-component" element={requireAdmin(<AddComponent />)} />
-        <Route path="/components" element={requireAuth(<ViewComponents onToast={showToast} />)} />
-        <Route path="/categories" element={requireAuth(<Categories onToast={showToast} />)} />
-        <Route path="/search" element={requireAuth(<SearchComponents onToast={showToast} />)} />
-        <Route path="/analytics" element={requireAuth(<Analytics onToast={showToast} />)} />
-        <Route path="/component/:id" element={requireAuth(<ComponentDetails onToast={showToast} />)} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+    </Routes>
 
-        <Route path="/unauthorized" element={<Unauthorized />} />
-      </Routes>
-      <Footer />
-    </BrowserRouter>
-  );
+    <Footer />
+  </>
+);
+  
 }
 
 export default App;
