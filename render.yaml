@@ -16,13 +16,11 @@ services:
         value: modular_showcase
 
   # 2. React Frontend Static Site
-  - type: web
+  - type: static
     name: modularcomponentshowcase
-    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishDir: dist
-    plan: free
     routes:
       - type: rewrite
         source: /gateway/*
