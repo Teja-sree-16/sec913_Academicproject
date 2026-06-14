@@ -70,16 +70,13 @@ gateway/                  FastAPI API Gateway and semantic search
 backend/                  Spring Boot backend
 database/postgres/        PostgreSQL schema and seed SQL
 database/mongo/           MongoDB seed script
-docker-compose.yml        Local PostgreSQL and MongoDB services
+
 ```
 
 ## Quick Start
 
 Start databases:
 
-```powershell
-docker compose up -d
-```
 
 Run Spring Boot backend:
 

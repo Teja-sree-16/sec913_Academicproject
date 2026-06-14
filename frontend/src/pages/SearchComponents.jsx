@@ -76,16 +76,17 @@ function SearchComponents({ onToast }) {
               <span>Intelligent Search Index</span>
             </div>
 
-            <form className="semantic-search-box" onSubmit={search}>
-              <label className="search-input-wrap">
+            <form className="semantic-search-box" onSubmit={search} style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "16px" }}>
+              <div className="modern-search-wrap" style={{ maxWidth: "480px" }}>
                 <SearchIcon />
                 <input
-                  placeholder="Describe what you want to build (e.g. form with validation checks, timeline audit)..."
+                  className="modern-search-input"
+                  placeholder="Describe what you want to build..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-              </label>
-              <button type="submit" disabled={status === "loading"}>
+              </div>
+              <button type="submit" disabled={status === "loading"} className="btn-pill btn-pill-primary" style={{ flex: "none", minWidth: "120px" }}>
                 {status === "loading" ? "Searching..." : "Search"}
               </button>
             </form>

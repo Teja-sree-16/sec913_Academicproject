@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { ChartIcon, ClockIcon, ComponentsIcon, DocsIcon } from "../components/Icons";
 import api from "../api/axios";
 
@@ -313,64 +314,37 @@ function Dashboard({ onToast }) {
 
           {role === "ADMIN" ? (
             <>
-              <form className="console-panel add-panel" onSubmit={addComponent}>
+              <div className="console-panel add-panel-banner" style={{
+                background: "radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 60%), rgba(13, 30, 54, 0.45)",
+                border: "1px solid rgba(34, 211, 238, 0.2)",
+                boxShadow: "0 15px 35px rgba(0, 0, 0, 0.3), 0 0 25px rgba(34, 211, 238, 0.05)",
+                borderRadius: "18px",
+                padding: "24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "20px"
+              }}>
                 <div>
-                  <h2>Publish New Library Pattern</h2>
-                  <p>Register a production-grade React element into the centralized design catalog.</p>
-                </div>
-
-                <div className="add-grid">
-                  <input
-                    placeholder="Component Name (e.g. Activity Table)"
-                    value={form.name}
-                    required
-                    onChange={(event) =>
-                      setForm({ ...form, name: event.target.value })
-                    }
-                  />
-
-                  <select
-                    value={form.category}
-                    onChange={(event) =>
-                      setForm({ ...form, category: event.target.value })
-                    }
-                  >
-                    <option value="">Assign Component Group</option>
-                    {categoryNames.map((category) => (
-                      <option
-                        value={category}
-                        key={category}
-                      >
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-
-                  <input
-                    placeholder="Integration Manual & Docs URL"
-                    value={form.documentation}
-                    onChange={(event) =>
-                      setForm({ ...form, documentation: event.target.value })
-                    }
-                  />
-
-                  <button type="submit" disabled={saveStatus === "saving"}>
-                    {saveStatus === "saving"
-                      ? "Publishing..."
-                      : "Publish to Catalog"}
-                  </button>
-                </div>
-
-                {saveStatus === "error" && (
-                  <p className="console-alert">Error: Unable to save pattern. Please check backend status.</p>
-                )}
-
-                {saveStatus === "saved" && (
-                  <p className="console-success">
-                    Success: Component successfully registered in database.
+                  <h2 style={{ margin: "0 0 6px 0", fontSize: "1.35rem", color: "#22d3ee" }}>Publish New Library Pattern</h2>
+                  <p style={{ margin: 0, fontSize: "0.9rem", color: "#94a3b8", lineHeight: "1.4" }}>
+                    Register a new production-ready React component complete with details, specifications, API prop tables, and live preview.
                   </p>
-                )}
-              </form>
+                </div>
+                <Link to="/add-component" className="btn-admin-primary" style={{
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "44px",
+                  padding: "0 28px",
+                  fontSize: "0.95rem",
+                  whiteSpace: "nowrap"
+                }}>
+                  + Create Component
+                </Link>
+              </div>
 
               <section className="console-panel">
                 <div className="section-title compact-title">

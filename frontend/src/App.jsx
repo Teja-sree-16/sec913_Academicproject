@@ -7,10 +7,13 @@ import AddComponent from "./pages/AddComponent";
 import ViewComponents from "./pages/ViewComponents";
 import Categories from "./pages/Categories";
 import SearchComponents from "./pages/SearchComponents";
+import Analytics from "./pages/Analytics";
 import ComponentDetails from "./pages/ComponentDetails";
 import Unauthorized from "./pages/Unauthorized";
 import Navbar from "./components/Navbar";
 import ToastContainer from "./components/ToastContainer";
+import Footer from "./components/Footer";
+
 
 function App() {
   const [auth, setAuth] = useState(() => {
@@ -79,7 +82,7 @@ function App() {
       <ToastContainer toasts={toasts} />
 
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={auth.token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<Signup />} />
 
@@ -88,10 +91,12 @@ function App() {
         <Route path="/components" element={requireAuth(<ViewComponents onToast={showToast} />)} />
         <Route path="/categories" element={requireAuth(<Categories onToast={showToast} />)} />
         <Route path="/search" element={requireAuth(<SearchComponents onToast={showToast} />)} />
+        <Route path="/analytics" element={requireAuth(<Analytics onToast={showToast} />)} />
         <Route path="/component/:id" element={requireAuth(<ComponentDetails onToast={showToast} />)} />
 
         <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }

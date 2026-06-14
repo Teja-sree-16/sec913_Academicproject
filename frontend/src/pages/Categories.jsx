@@ -35,17 +35,47 @@ function Categories({ onToast }) {
     };
   }, [onToast]);
 
+  const CATEGORY_DESCRIPTIONS = {
+    "Fast API": "Reusable backend APIs and authentication services.",
+    "Dashboard Widgets": "Analytics cards and KPI visualizations.",
+    "DBE": "Database and persistence components.",
+    "Sample": "Sample components for demonstration."
+  };
+
+  const getCategoryIcon = (name) => {
+    const lowercaseName = String(name || "").toLowerCase();
+    if (lowercaseName.includes("fast api") || lowercaseName.includes("backend")) return "⚙️";
+    if (lowercaseName.includes("frontend")) return "🎨";
+    if (lowercaseName.includes("dbe") || lowercaseName.includes("database")) return "🗄️";
+    if (lowercaseName.includes("dashboard")) return "📊";
+    if (lowercaseName.includes("auth")) return "🔐";
+    return "🧩";
+  };
+
+  const getCategoryColorClass = (name) => {
+    const lowercaseName = String(name || "").toLowerCase();
+    if (lowercaseName.includes("fast api") || lowercaseName.includes("backend")) return "cat-cyan";
+    if (lowercaseName.includes("dashboard")) return "cat-purple";
+    if (lowercaseName.includes("dbe") || lowercaseName.includes("database")) return "cat-green";
+    if (lowercaseName.includes("sample")) return "cat-orange";
+    return "cat-cyan";
+  };
+
   const categoryCards = useMemo(() => {
     const liveCategoryNames = [...new Set(components.map((component) => component.category).filter(Boolean))];
 
     return liveCategoryNames.map((categoryName) => {
       const savedCategory = categories.find((category) => category.name === categoryName);
       const count = components.filter((component) => component.category === categoryName).length;
+      const savedDesc = savedCategory?.description;
+      const desc = savedDesc && savedDesc !== "No description added yet" && savedDesc !== "No description added yet."
+        ? savedDesc
+        : (CATEGORY_DESCRIPTIONS[categoryName] || "Curated component collections and design system presets for quick assembly.");
 
       return {
         id: savedCategory?.id || categoryName,
         name: categoryName,
-        description: savedCategory?.description || "",
+        description: desc,
         count,
       };
     });
@@ -92,16 +122,18 @@ function Categories({ onToast }) {
             {status === "ready" && categoryCards.length > 0 && (
               <div className="category-card-grid">
                 {categoryCards.map((category) => (
-                  <article className="category-card" key={category.id || category.name}>
-                    <DocsIcon />
+                  <article className={`category-card-modern ${getCategoryColorClass(category.name)}`} key={category.id || category.name}>
                     <div>
-                      <h3>{category.name}</h3>
-                      <p>{category.description || "No description added yet."}</p>
+                      <div className="category-card-icon">{getCategoryIcon(category.name)}</div>
+                      <h3 className="category-card-title">{category.name}</h3>
+                      <p className="category-card-desc">{category.description}</p>
                     </div>
-                    <span><ComponentsIcon /> {category.count} components</span>
-                    {category.count > 0 && (
-                      <Link to="/components"><EyeIcon /> View Components</Link>
-                    )}
+                    <div className="category-card-meta">
+                      <span className="category-card-count"><ComponentsIcon /> {category.count} components</span>
+                      {category.count > 0 && (
+                        <Link to="/components" className="category-card-btn">Explore →</Link>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>
