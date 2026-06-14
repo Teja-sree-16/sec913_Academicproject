@@ -706,97 +706,33 @@ function ViewComponents({ onToast }) {
                           );
                         })()}
                       </div>
-
-                      <div className="preview-content-card-modern">
-                        <span className="asset-eyebrow">Design System Asset</span>
-                        <h4 className="asset-title">{selectedComponent.category || "General"}</h4>
-                        <p className="asset-desc">{selectedComponent.description}</p>
-                        <div className="preview-tags-row">
-                          <span className="preview-tag">Production Ready</span>
-                          <span className="preview-tag">Reusable</span>
-                          <span className="preview-tag">Verified</span>
-                          <span className="preview-tag">Open Source</span>
-                        </div>
-                      </div>
                     </div>
                   )}
 
                   {activeTab === "code" && (
                     <div className="code-tab-panel-modern">
-                      <div className="code-panel-header-modern">
-                        <span>JSX Template Source</span>
-                        <button type="button" className="copy-action-btn-modern" onClick={() => copyCode(selectedComponent.codeSnippet)}>
-                          <CopyIcon /> Copy Template
-                        </button>
-                      </div>
                       <CodeHighlight code={selectedComponent.codeSnippet} />
                     </div>
                   )}
 
                   {activeTab === "usage" && (
                     <div className="code-tab-panel-modern">
-                      <div className="code-panel-header-modern">
-                        <span>Integration Example Code</span>
-                        <button type="button" className="copy-action-btn-modern" onClick={() => copyCode(selectedComponent.usageExample)}>
-                          <CopyIcon /> Copy Usage
-                        </button>
-                      </div>
                       <CodeHighlight code={selectedComponent.usageExample} />
                     </div>
                   )}
 
                   {activeTab === "docs" && (
-                    <div className="docs-tab-panel-modern">
-                      <div className="docs-section-modern">
-                        <h4>Functional Description</h4>
-                        <p className="docs-desc-p">{selectedComponent.description || "No description provided."}</p>
-                      </div>
-
-                      <div className="docs-section-modern">
-                        <h4>API References & Parameters</h4>
-                        {renderPropsTable(selectedComponent.propsTable)}
-                      </div>
-
-                      <div className="docs-meta-grid-modern">
-                        <div>
-                          <strong>Category:</strong>
-                          <span>{selectedComponent.category || "General"}</span>
+                    <div className="docs-clean-reader-container">
+                      {selectedComponent.documentation && selectedComponent.documentation.trim() ? (
+                        <div className="docs-clean-reader">
+                          {selectedComponent.documentation}
                         </div>
-                        <div>
-                          <strong>Clearance:</strong>
-                          <span>{selectedComponent.status || "Published"}</span>
+                      ) : (
+                        <div className="docs-clean-reader empty">
+                          No documentation available.
                         </div>
-                        <div>
-                          <strong>Version:</strong>
-                          <span>v{selectedComponent.version || "1.0.0"}</span>
-                        </div>
-                        <div>
-                          <strong>Author:</strong>
-                          <span>{selectedComponent.createdBy || "Design System"}</span>
-                        </div>
-                      </div>
-
-                      <div className="docs-section-modern">
-                        <h4>Installation Instructions</h4>
-                        <div className="installation-block-modern">
-                          <code>npm install @design-system/{selectedComponent.name?.toLowerCase().replace(/\s+/g, "-")}</code>
-                          <button type="button" className="copy-icon-btn-modern" onClick={() => copyCode(`npm install @design-system/${selectedComponent.name?.toLowerCase().replace(/\s+/g, "-")}`)}>
-                            <CopyIcon />
-                          </button>
-                        </div>
-                        <p className="sub-install-notes">{selectedComponent.installationGuide}</p>
-                      </div>
-
-                      <div className="docs-section-modern">
-                        <h4>Accessibility Compliance (a11y)</h4>
-                        <p className="sub-install-notes">{selectedComponent.accessibilityNotes}</p>
-                      </div>
-
-                      <div className="docs-section-modern">
-                        <h4>Design Best Practices</h4>
-                        <p className="sub-install-notes">{selectedComponent.bestPractices}</p>
-                      </div>
-
+                      )}
+                      
                       <div className="docs-footer-link-modern">
                         <Link className="inline-detail-link-modern" to={`/component/${selectedComponent.id}`} onClick={() => setSelectedComponent(null)}>
                           Open Dedicated Documentation Page →
