@@ -35,7 +35,7 @@ export const getApiErrorMessage = (error, fallback = "Request failed. Please try
 };
 
 const api = axios.create({
-  baseURL: "https://modularcomponentshowcase.onrender.com/gateway",
+  baseURL: "https://modularcomponentshowcase.onrender.com/frontend",
 });
 
 api.interceptors.request.use((config) => {
