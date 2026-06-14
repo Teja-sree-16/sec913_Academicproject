@@ -16,7 +16,7 @@ services:
         value: modular_showcase
 
   # 2. React Frontend Static Site
-  - type: static
+  - type: web
     name: modularcomponentshowcase
     rootDir: frontend
     buildCommand: npm install && npm run build
