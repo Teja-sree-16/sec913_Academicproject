@@ -21,11 +21,6 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishPath: dist
-    headers:
-      - path: /*
-        headers:
-          - key: Cache-Control
-            value: no-cache
     envVars:
       - key: VITE_API_URL
         value: https://modularcomponentshowcase-gateway.onrender.com/gateway
