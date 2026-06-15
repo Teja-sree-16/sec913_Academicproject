@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CodeIcon, CopyIcon, EyeIcon, DocsIcon } from "../components/Icons";
+import { CodeIcon, CopyIcon, EyeIcon, DocsIcon, HeartIcon, StarIcon, TrashIcon } from "../components/Icons";
 import api from "../api/axios";
 import { REAL_COMPONENTS_MAP } from "../components/RealComponents";
 import { CodeHighlight } from "../components/CodeHighlight";
+import "../styles/pages/ComponentDetails.css";
 
 const withDocumentationDefaults = (component) => {
   const realData = REAL_COMPONENTS_MAP[component.name] || {};
@@ -82,47 +83,105 @@ function renderPropsTable(propsText) {
   );
 }
 
-const getCategoryIcon = (category) => {
-  const cat = String(category || "").toLowerCase();
-  if (cat.includes("backend")) return "⚙️";
-  if (cat.includes("frontend")) return "🎨";
-  if (cat.includes("database") || cat.includes("dbe")) return "🗄️";
-  if (cat.includes("dashboard")) return "📊";
-  if (cat.includes("auth") || cat.includes("authentication")) return "🔐";
-  if (cat.includes("api") || cat.includes("fast api")) return "🚀";
-  return "🧩";
-};
-
 function ComponentDetails({ onToast }) {
   const { id } = useParams();
   const [component, setComponent] = useState(null);
   const [status, setStatus] = useState("loading");
-  const [activeTab, setActiveTab] = useState("preview");
+  const [activeTab, setActiveTab] = useState("code");
+  
+  const [reviews, setReviews] = useState([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [rating, setRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
+
+  const userEmail = localStorage.getItem("email");
+  const userRole = localStorage.getItem("role");
 
   useEffect(() => {
     let isMounted = true;
 
-    api
-      .get("/components")
-      .then((res) => {
-        const records = Array.isArray(res.data) ? res.data : [];
-        const selectedRecord = records.find((item) => String(item.id) === String(id));
+    const loadData = async () => {
+      try {
+        const [compRes, favRes, revRes] = await Promise.all([
+          api.get("/components"),
+          api.get("/favorites"),
+          api.get(`/reviews?componentId=${id}`)
+        ]);
 
         if (isMounted) {
+          const records = Array.isArray(compRes.data) ? compRes.data : [];
+          const selectedRecord = records.find((item) => String(item.id) === String(id));
           setComponent(selectedRecord ? withDocumentationDefaults(selectedRecord) : null);
           setStatus(selectedRecord ? "ready" : "missing");
+
+          const favs = Array.isArray(favRes.data) ? favRes.data : [];
+          // Note: Node.js API returns favorite_id as well, but the component data is spread in it.
+          // favs has the actual component objects including `id`.
+          setIsFavorite(favs.some(f => String(f.id) === String(id)));
+
+          setReviews(Array.isArray(revRes.data) ? revRes.data : []);
         }
-      })
-      .catch(() => {
+      } catch (err) {
         if (isMounted) {
           setStatus("error");
         }
-      });
+      }
+    };
+
+    loadData();
 
     return () => {
       isMounted = false;
     };
   }, [id]);
+
+  const toggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await api.delete(`/favorites/component/${id}`);
+        setIsFavorite(false);
+        onToast?.({ title: "Removed from Favorites", type: "info" });
+      } else {
+        await api.post("/favorites", { componentId: id });
+        setIsFavorite(true);
+        onToast?.({ title: "Added to Favorites", type: "success" });
+      }
+    } catch {
+      onToast?.({ title: "Action Failed", type: "error" });
+    }
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!reviewText.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await api.post("/reviews", { componentId: id, rating, comment: reviewText });
+      setReviews([res.data, ...reviews]);
+      setReviewText("");
+      setRating(5);
+      onToast?.({ title: "Review Added", type: "success" });
+    } catch (err) {
+      onToast?.({ 
+        title: "Review Failed", 
+        message: err.response?.data?.error || "Could not submit review", 
+        type: "error" 
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteReview = async (reviewId) => {
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      setReviews(reviews.filter(r => r.id !== reviewId));
+      onToast?.({ title: "Review Deleted", type: "info" });
+    } catch {
+      onToast?.({ title: "Delete Failed", type: "error" });
+    }
+  };
 
   const copyCode = async (code) => {
     await navigator.clipboard.writeText(code || "<Component />");
@@ -233,161 +292,218 @@ function ComponentDetails({ onToast }) {
   }
 
   return (
-    <div className="page page-details-modern">
-      {/* Particles */}
-      <div className="preview-particles">
-        <div className="preview-particle" />
-        <div className="preview-particle" />
-        <div className="preview-particle" />
-        <div className="preview-particle" />
-        <div className="preview-particle" />
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <p className="eyebrow">{component.category || "Uncategorized"}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h1>{component.name}</h1>
+            <button 
+              type="button" 
+              className={`icon-button ${isFavorite ? "active-favorite" : ""}`}
+              onClick={toggleFavorite}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+              style={{ color: isFavorite ? "#e74c3c" : "inherit" }}
+            >
+              <HeartIcon fill={isFavorite ? "currentColor" : "none"} />
+            </button>
+          </div>
+          <p>Created by {component.createdBy || "unknown"} · v{component.version} · {component.status}</p>
+        </div>
+        <Link className="button-link" to="/components">
+          Back to Library
+        </Link>
       </div>
 
       <div className="preview-split-stage">
-        {/* Left Column: Component Preview Card */}
-        <div className="preview-pane-left-card">
-          <div className="preview-card-top">
-            <span className="preview-card-category-icon">
-              {getCategoryIcon(component.category)}
-            </span>
-            <h2 className="preview-card-name">{component.name}</h2>
-            <p className="preview-card-description">{component.description}</p>
+        <div className="preview-pane-left">
+          <div className="pane-header-mini">
+            <h3><EyeIcon /> Interactive Stage</h3>
+            <div className="stage-theme-dot" />
           </div>
-
-          <div className="preview-card-badges">
-            <span className="preview-card-badge">{component.category || "General"}</span>
-            <span className="preview-card-badge">{component.status || "Published"}</span>
-            <span className="preview-card-badge">v{component.version || "1.0.0"}</span>
+          <div className="component-preview-box preview-device-desktop preview-theme-dark">
+            {(() => {
+              const PreviewComp = REAL_COMPONENTS_MAP[component.name]?.Preview;
+              return PreviewComp ? (
+                <PreviewComp />
+              ) : (
+                <div className="no-preview-placeholder">
+                  {component.previewImage && (
+                    <img src={component.previewImage} alt="" className="fallback-preview-img" />
+                  )}
+                  <strong>{component.name}</strong>
+                  <p>{component.description}</p>
+                  <button type="button" onClick={handleUseComponent} className="primary-action-btn">
+                    Use Component
+                  </button>
+                </div>
+              );
+            })()}
           </div>
-
-          {/* Statistics Row */}
-          <div className="preview-card-stats-row">
-            <div className="preview-stat-item">
-              <span className="preview-stat-value">⭐ {85 + (component.name.length * 3) % 15}/100</span>
-              <span className="preview-stat-label">Popularity Score</span>
-            </div>
-            <div className="preview-stat-item">
-              <span className="preview-stat-value">📦 {100 + (component.name.length * 17) % 350} Projects</span>
-              <span className="preview-stat-label">Adoption Rate</span>
-            </div>
-            <div className="preview-stat-item">
-              <span className="preview-stat-value">🚀 {90 + (component.name.length * 2) % 10}%</span>
-              <span className="preview-stat-label">Production Health</span>
-            </div>
-            <div className="preview-stat-item">
-              <span className="preview-stat-value">📅 June 2026</span>
-              <span className="preview-stat-label">Last Updated</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="preview-card-actions">
-            <button
-              type="button"
-              className={`btn-preview-card ${activeTab === "preview" ? "active" : ""}`}
-              onClick={() => setActiveTab("preview")}
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              className="btn-preview-card"
-              onClick={() => copyCode(component.codeSnippet)}
-            >
-              Copy Code
-            </button>
-            <button
-              type="button"
-              className="btn-preview-card btn-preview-card-primary"
-              onClick={handleUseComponent}
-            >
-              Add Project
-            </button>
+          
+          <div className="detail-meta-box">
+            <h4>Component Identifier</h4>
+            <code>{component.id}</code>
             
-            <Link className="btn-preview-card" style={{ marginTop: "10px", textDecoration: "none", background: "rgba(255, 255, 255, 0.03)" }} to="/components">
-              Back to Library
-            </Link>
+            <h4 style={{ marginTop: "12px" }}>Access Clearance</h4>
+            <span className="status-badge-clearance">{component.status}</span>
+          </div>
+
+          <div className="reviews-section" style={{ marginTop: "24px", padding: "16px", backgroundColor: "var(--card-bg)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+            <h3 style={{ marginBottom: "16px" }}><StarIcon fill="currentColor" /> Component Reviews</h3>
+            
+            <form onSubmit={submitReview} style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>Rating:</span>
+                {[1, 2, 3, 4, 5].map(r => (
+                  <button 
+                    key={r} 
+                    type="button" 
+                    onClick={() => setRating(r)}
+                    style={{ background: "none", border: "none", color: r <= rating ? "#f1c40f" : "#555", cursor: "pointer", fontSize: "1.2rem" }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <textarea 
+                placeholder="Share your experience using this component..." 
+                value={reviewText} 
+                onChange={(e) => setReviewText(e.target.value)}
+                style={{ width: "100%", padding: "12px", minHeight: "80px", borderRadius: "4px", border: "1px solid var(--input-border)", background: "var(--input-bg)", color: "var(--text-color)", resize: "vertical" }}
+              />
+              <button type="submit" disabled={submitting || !reviewText.trim()} className="primary-button" style={{ alignSelf: "flex-end" }}>
+                {submitting ? "Submitting..." : "Post Review"}
+              </button>
+            </form>
+
+            <div className="reviews-list" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {reviews.length === 0 ? (
+                <p className="console-muted">No reviews yet. Be the first to review!</p>
+              ) : (
+                reviews.map(review => (
+                  <div key={review.id} style={{ padding: "12px", borderBottom: "1px solid var(--border-color)", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <strong style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {review.user_email}
+                        <span style={{ color: "#f1c40f" }}>{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</span>
+                      </strong>
+                      {(userEmail === review.user_email || userRole === "ADMIN") && (
+                        <button type="button" onClick={() => deleteReview(review.id)} className="icon-text-button" style={{ color: "var(--text-muted)" }}>
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.95rem" }}>{review.comment}</p>
+                    <small className="console-muted">{new Date(review.created_at).toLocaleDateString()}</small>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Tabbed Preview & Specs */}
-        <div className="preview-pane-right-panel">
-          <div className="tab-switcher-row-modern">
+        <div className="preview-pane-right">
+          <div className="tab-switcher-row">
             <button
               type="button"
-              className={`tab-btn-modern ${activeTab === "preview" ? "active" : ""}`}
-              onClick={() => setActiveTab("preview")}
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              className={`tab-btn-modern ${activeTab === "code" ? "active" : ""}`}
+              className={`tab-btn ${activeTab === "code" ? "active" : ""}`}
               onClick={() => setActiveTab("code")}
             >
-              Code
+              <CodeIcon /> React Component Code
             </button>
             <button
               type="button"
-              className={`tab-btn-modern ${activeTab === "usage" ? "active" : ""}`}
+              className={`tab-btn ${activeTab === "usage" ? "active" : ""}`}
               onClick={() => setActiveTab("usage")}
             >
-              Usage
+              <CodeIcon /> Usage Example
             </button>
             <button
               type="button"
-              className={`tab-btn-modern ${activeTab === "docs" ? "active" : ""}`}
+              className={`tab-btn ${activeTab === "docs" ? "active" : ""}`}
               onClick={() => setActiveTab("docs")}
             >
-              API Docs
+              <DocsIcon /> Specs & API
             </button>
           </div>
 
-          <div className="tab-stage-content-modern">
-            {activeTab === "preview" && (
-              <div className="preview-tab-panel-modern">
-                <div className="component-preview-box-modern">
-                  {(() => {
-                    const PreviewComp = REAL_COMPONENTS_MAP[component.name]?.Preview;
-                    return PreviewComp ? (
-                      <PreviewComp />
-                    ) : (
-                      <div className="no-preview-placeholder-modern">
-                        <span className="fallback-category-icon-large">
-                          {getCategoryIcon(component.category)}
-                        </span>
-                        <strong>{component.name}</strong>
-                        <p>{component.description}</p>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
+          <div className="tab-stage-content">
             {activeTab === "code" && (
-              <div className="code-tab-panel-modern">
+              <div className="code-tab-panel">
+                <div className="code-panel-header">
+                  <span>JSX Template source</span>
+                  <button type="button" className="icon-text-button" onClick={() => copyCode(component.codeSnippet)}>
+                    <CopyIcon /> Copy Template
+                  </button>
+                </div>
                 <CodeHighlight code={component.codeSnippet} />
               </div>
             )}
 
             {activeTab === "usage" && (
-              <div className="code-tab-panel-modern">
+              <div className="code-tab-panel">
+                <div className="code-panel-header">
+                  <span>Integration example code</span>
+                  <button type="button" className="icon-text-button" onClick={() => copyCode(component.usageExample)}>
+                    <CopyIcon /> Copy Usage
+                  </button>
+                </div>
                 <CodeHighlight code={component.usageExample} />
               </div>
             )}
 
             {activeTab === "docs" && (
-              <div className="docs-clean-reader-container">
-                {component.documentation && component.documentation.trim() ? (
-                  <div className="docs-clean-reader">
-                    {component.documentation}
+              <div className="docs-tab-panel">
+                <div className="docs-section">
+                  <h4>Functional Description</h4>
+                  <p className="docs-desc-p">{component.description || "No description provided."}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>API References & Parameters</h4>
+                  {renderPropsTable(component.propsTable)}
+                </div>
+
+                <div className="docs-meta-grid">
+                  <div>
+                    <strong>Category:</strong>
+                    <span>{component.category || "General"}</span>
                   </div>
-                ) : (
-                  <div className="docs-clean-reader empty">
-                    No documentation available.
+                  <div>
+                    <strong>Clearance:</strong>
+                    <span>{component.status || "Published"}</span>
                   </div>
-                )}
+                  <div>
+                    <strong>Version:</strong>
+                    <span>v{component.version || "1.0.0"}</span>
+                  </div>
+                  <div>
+                    <strong>Author:</strong>
+                    <span>{component.createdBy || "Design System"}</span>
+                  </div>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Installation Instructions</h4>
+                  <div className="installation-block">
+                    <code>npm install @design-system/{component.name?.toLowerCase().replace(/\s+/g, "-")}</code>
+                    <button type="button" className="copy-icon-btn" onClick={() => copyCode(`npm install @design-system/${component.name?.toLowerCase().replace(/\s+/g, "-")}`)}>
+                      <CopyIcon />
+                    </button>
+                  </div>
+                  <p className="sub-install-notes">{component.installationGuide}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Accessibility Compliance (a11y)</h4>
+                  <p className="sub-install-notes">{component.accessibilityNotes}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Design Best Practices</h4>
+                  <p className="sub-install-notes">{component.bestPractices}</p>
+                </div>
               </div>
             )}
           </div>

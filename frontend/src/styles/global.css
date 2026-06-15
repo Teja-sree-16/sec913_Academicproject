@@ -1,56 +1,41 @@
 :root {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
-  color-scheme: dark;
-  --bg: #06121a;
-  --bg-elevated: #0b1f29;
-  --navy: #06121a;
-  --navy-soft: #0b1f29;
-  --glass: rgba(16, 35, 46, 0.68);
-  --glass-strong: rgba(16, 35, 46, 0.82);
-  --glass-white: #f1f5f9;
-  --surface: #10232e;
-  --surface-strong: #0b1f29;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --primary: var(--primary);
-  --primary-strong: var(--primary);
-  --accent: var(--primary);
-  --success: var(--primary);
-  --danger: #ef4444;
-  --blue: var(--primary);
-  --sky: var(--primary);
-  --border: var(--primary);
-  --shadow: 0 0 15px var(--primary), 0 0 30px var(--primary);
-  --glow-primary: 0 0 15px var(--primary), 0 0 30px var(--primary);
-  --glow-accent: 0 0 14px var(--primary);
-  --page-width: 1320px;
-  --page-min-height: 700px;
+  /* THE OLIVE & CREAM PALETTE (Perfectly flat flow) */
+  --bg-primary: #d6d3c4; /* Cream background */
+  --bg-secondary: #d6d3c4; /* Same as primary to eliminate 'shades' */
+  --bg-tertiary: transparent; /* Transparent for inputs/code to blend perfectly */
+  
+  --border-light: rgba(0, 0, 0, 0.15); /* Clean, dark contrast border */
+  --border-focus: #454a34; /* Olive green */
+  
+  /* OVERRIDE APP.CSS NEON/CYAN COLORS TO OLIVE GREEN */
+  --primary: #454a34 !important;
+  --primary-strong: #363a29 !important;
+  --accent: #454a34 !important;
+  --success: #454a34 !important;
+  --blue: #454a34 !important;
+  --sky: #454a34 !important;
+  --text: #454a34 !important;
+  --muted: #636b4b !important;
+  
+  /* Text specific */
+  --text-primary: #454a34; /* Deep Olive Green for body text (NOT black) */
+  --text-secondary: #636b4b; /* Lighter olive for paragraphs */
+  --text-accent: #454a34; /* Olive green for accents */
+  --text-header: #000000; /* Pure Black STRICTLY for headers */
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  
+  /* Completely flat - NO shadows to maintain pure professional flow */
+  --shadow-subtle: none !important;
+  --shadow-hover: none !important;
+  --shadow: none !important;
+  --glow-primary: none !important;
+  --glow-accent: none !important;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f8fafc; /* slate-50 */
-  --bg-elevated: #ffffff;
-  --navy: #f1f5f9;
-  --navy-soft: #e2e8f0;
-  --glass: rgba(15, 23, 42, 0.03);
-  --glass-strong: rgba(15, 23, 42, 0.06);
-  --glass-white: rgba(15, 23, 42, 0.85);
-  --surface: #ffffff;
-  --surface-strong: #f1f5f9;
-  --text: #0f172a; /* slate-900 */
-  --muted: #475569; /* slate-600 */
-  --primary: #4f46e5; /* Indigo-600 */
-  --primary-strong: #3730a3; /* Indigo-800 */
-  --accent: var(--primary);
-  --success: var(--primary);
-  --blue: var(--primary);
-  --sky: var(--primary);
-  --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --glow-primary: 0 0 0 2px var(--primary);
-  --glow-accent: 0 0 0 2px var(--primary);
-}
+
 
 * {
   box-sizing: border-box;
@@ -4236,6 +4221,290 @@ button[aria-current="true"] {
   }
 }
 
+/* Restore conversation-start olive/cream colors */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --bg: #d6d3c4 !important;
+  --bg-elevated: #d6d3c4 !important;
+  --navy: #454a34 !important;
+  --navy-soft: #636b4b !important;
+  --glass: #d6d3c4 !important;
+  --glass-strong: #d6d3c4 !important;
+  --glass-white: #d6d3c4 !important;
+  --surface: #d6d3c4 !important;
+  --surface-strong: #d6d3c4 !important;
+  --text: #454a34 !important;
+  --muted: #636b4b !important;
+  --primary: #454a34 !important;
+  --primary-strong: #363a29 !important;
+  --accent: #454a34 !important;
+  --success: #454a34 !important;
+  --blue: #454a34 !important;
+  --sky: #454a34 !important;
+  --border: rgba(0, 0, 0, 0.15) !important;
+  --shadow: none !important;
+  --glow-primary: none !important;
+  --glow-accent: none !important;
+}
+
+body,
+body:has(.console-stage),
+:root[data-theme="light"] body {
+  background: #d6d3c4 !important;
+  color: #454a34 !important;
+}
+
+body::before,
+body::after {
+  display: none !important;
+}
+
+.navbar,
+body:has(.console-stage) .navbar,
+.console-window,
+.page,
+.page-shell,
+.auth-page,
+.auth-card,
+.form-card,
+.dash-card,
+.component-card,
+.category-card,
+.stat-card,
+.console-panel,
+.detail-panel,
+.preview-card,
+.registry-row,
+.registry-row-pro,
+.semantic-empty-grid article,
+.semantic-result-card,
+.preview-component-wrap,
+.toast,
+.notice,
+.queue-table,
+.queue-row,
+.component-preview-box,
+.preview-pane-left,
+.preview-pane-right,
+.preview-modal,
+.tab-stage-content,
+.metric-card-box,
+.timeline-row-content,
+.docs-meta-grid div,
+.installation-block,
+.detail-meta-box,
+
+
+.role-hero,
+.search-hero {
+  background: #d6d3c4 !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: none !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar h2,
+.page h1,
+.page-shell h1,
+.auth-card h1,
+.role-hero h1,
+.search-hero h1,
+.component-card h2,
+.semantic-result-card h2,
+.stat-card strong,
+.dash-card strong,
+.counter-value,
+.card-value-display,
+.comparison-grid strong,
+.no-preview-placeholder strong {
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+p,
+.page p,
+.auth-card p,
+.form-card p,
+.component-card p,
+.console-muted,
+.semantic-result-card p,
+.semantic-result-card small,
+.comparison-grid span,
+.comparison-grid small,
+.comparison-grid p,
+.result-desc-p,
+.auth-subtitle,
+.quick-access-box span {
+  color: #636b4b !important;
+}
+
+a,
+a:hover,
+.eyebrow,
+.stat-card svg,
+.category-card > svg,
+.preview-card svg,
+.search-input-wrap svg,
+.semantic-empty-grid svg,
+.result-semantic-match,
+.breadcrumb-link,
+.search-icon-svg {
+  color: #454a34 !important;
+  filter: none !important;
+}
+
+button,
+.button-link,
+.small-primary,
+.primary-action-btn,
+.auth-submit-btn,
+.form-submit-btn,
+.wizard-next-btn,
+.wizard-complete-btn,
+.view-details-action-link,
+.result-actions a,
+.registry-row a,
+.category-card a,
+.console-panel button,
+.queue-actions a,
+.queue-actions button {
+  color: #d6d3c4 !important;
+  background: #454a34 !important;
+  border-color: #454a34 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+button:hover,
+.button-link:hover,
+.small-primary:hover,
+.primary-action-btn:hover,
+.auth-submit-btn:hover,
+.form-submit-btn:hover,
+.wizard-next-btn:hover,
+.wizard-complete-btn:hover,
+.view-details-action-link:hover,
+.result-actions a:hover,
+.registry-row a:hover,
+.category-card a:hover,
+.console-panel button:hover,
+.queue-actions a:hover,
+.queue-actions button:hover {
+  color: #d6d3c4 !important;
+  background: #363a29 !important;
+  border-color: #363a29 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.secondary-button,
+.query-chip,
+.wizard-back-btn,
+.breadcrumb-reset-btn,
+.filter-tab,
+.rating-row button,
+.breadcrumb-link,
+.tab-btn,
+.icon-text-button,
+.copy-icon-btn,
+.quick-chip-btn {
+  color: #454a34 !important;
+  background: transparent !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: none !important;
+}
+
+.secondary-button:hover,
+.query-chip:hover,
+.filter-tab.active,
+.tab-btn.active,
+.rating-row .rating-active,
+.role-option.selected,
+button[aria-pressed="true"],
+button[aria-current="true"] {
+  color: #d6d3c4 !important;
+  background: #454a34 !important;
+  border-color: #454a34 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+.auth-brand-logo,
+.cube-mark,
+.brand-dot,
+.step-progress-bar,
+.result-rank,
+.bar-item span {
+  background: #454a34 !important;
+  box-shadow: none !important;
+}
+
+.navbar a.active,
+.navbar a:hover {
+  background: rgba(69, 74, 52, 0.12) !important;
+  color: #000000 !important;
+}
+
+.navbar a::after {
+  background: #454a34 !important;
+  box-shadow: none !important;
+}
+
+.score-pill,
+.status-badge-clearance,
+.req-badge,
+.clearance-level-badge,
+.role-indicator-badge,
+.timeline-row-badge,
+.delta-badge,
+.admin-only-badge,
+.category-card span,
+.notice,
+.ai-search-animation {
+  background: rgba(69, 74, 52, 0.1) !important;
+  border-color: rgba(69, 74, 52, 0.28) !important;
+  color: #454a34 !important;
+  box-shadow: none !important;
+}
+
+.toast.error,
+.notice.error,
+.auth-alert-banner,
+.error-message,
+.reject-action-btn {
+  background: rgba(143, 47, 47, 0.1) !important;
+  border-color: rgba(143, 47, 47, 0.3) !important;
+  color: #8f2f2f !important;
+  box-shadow: none !important;
+}
+
+.skeleton-card::after,
+.skeleton-detail::after,
+.navbar a.active,
+.filter-tab.active,
+.rating-row .rating-active,
+.tab-btn.active,
+.role-option.selected,
+.sidebar-item.active,
+button[aria-pressed="true"],
+button[aria-current="true"] {
+  animation: none !important;
+}
+
+/* removed ::before */
+
+::selection {
+  color: #d6d3c4;
+  background: #454a34;
+}
+
+
 /* MASTER OVERRIDE FOR INPUTS */
 input, textarea, select, .search-input-wrap input, .console-panel input, .console-panel select, .console-panel textarea, .form-group input, .toolbar-search-input input {
   background: transparent !important;
@@ -4312,4 +4581,23 @@ input:focus, textarea:focus, select:focus, .search-input-wrap:focus-within input
 /* MASTER OVERRIDE FOR INSTALLATION BLOCK TEXT */
 .installation-block code {
   color: #454a34 !important;
+}
+
+
+/* FIX COMPONENT TITLES */
+.registry-row strong, .registry-row-pro strong {
+  color: #000000 !important;
+  font-size: 1.15rem !important;
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+}
+
+
+/* FIX ALL STRONG TAGS */
+strong:not(.skeleton-line) {
+  color: #454a34 !important;
+  background: transparent !important;
+  width: auto !important;
+  height: auto !important;
 }

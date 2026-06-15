@@ -6,6 +6,7 @@ import {
   LogoutIcon,
   PlusIcon,
   SearchIcon,
+  HeartIcon,
 } from "./Icons";
 
 function Navbar({ token, role, onLogout }) {
@@ -18,31 +19,23 @@ function Navbar({ token, role, onLogout }) {
 
   return (
     <nav className="navbar">
-      <NavLink to={token ? "/dashboard" : "/"} className="brand-link" aria-label="SmartDB home">
-        <span className="brand-mark" aria-hidden="true" />
-        <span className="brand-copy">
-          <strong>Smart<span>DB</span></strong>
-          <small>Intelligent Search Platform</small>
-        </span>
-      </NavLink>
+      <h2><ComponentsIcon /> Component Library</h2>
 
       <div>
-        {!token && (
-          <>
-            <NavLink to="/login">Login</NavLink>
-            <NavLink to="/signup" className="signup-nav-link">Sign Up</NavLink>
-          </>
-        )}
-
         {token && (
           <>
             <NavLink to="/dashboard"><DashboardIcon /> Dashboard</NavLink>
             <NavLink to="/components"><ComponentsIcon /> Components</NavLink>
             <NavLink to="/categories"><DocsIcon /> Categories</NavLink>
             <NavLink to="/search"><SearchIcon /> Search</NavLink>
-            <NavLink to="/analytics"><DashboardIcon /> Analytics</NavLink>
+            <NavLink to="/favorites"><HeartIcon /> Favorites</NavLink>
 
-            {role === "ADMIN" && <NavLink to="/add-component"><PlusIcon /> Add Component</NavLink>}
+            {role === "ADMIN" && (
+              <>
+                <NavLink to="/add-component"><PlusIcon /> Add Component</NavLink>
+                <NavLink to="/admin/users"><DocsIcon /> Users</NavLink>
+              </>
+            )}
 
             <button onClick={logout}><LogoutIcon /> Logout</button>
           </>
@@ -51,6 +44,5 @@ function Navbar({ token, role, onLogout }) {
     </nav>
   );
 }
-
 
 export default Navbar;

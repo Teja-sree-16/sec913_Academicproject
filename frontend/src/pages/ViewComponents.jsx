@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ChartIcon,
   CloseIcon,
@@ -49,17 +49,6 @@ const normalizeComponent = (component) => {
       component.bestPractices ||
       "Keep variants limited, document required props, test empty/loading/error states, and reuse design tokens.",
   };
-};
-
-const getCategoryIcon = (category) => {
-  const cat = String(category || "").toLowerCase();
-  if (cat.includes("backend")) return "⚙️";
-  if (cat.includes("frontend")) return "🎨";
-  if (cat.includes("database") || cat.includes("dbe")) return "🗄️";
-  if (cat.includes("dashboard")) return "📊";
-  if (cat.includes("auth") || cat.includes("authentication")) return "🔐";
-  if (cat.includes("api") || cat.includes("fast api")) return "🚀";
-  return "🧩";
 };
 
 function renderPropsTable(propsText) {
@@ -116,9 +105,13 @@ function renderPropsTable(propsText) {
 }
 
 function ViewComponents({ onToast }) {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialCategory = queryParams.get("category") || "All";
+
   const [components, setComponents] = useState([]);
   const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedTag, setSelectedTag] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [sortBy, setSortBy] = useState("name");
@@ -131,7 +124,7 @@ function ViewComponents({ onToast }) {
   const [recentlyViewed, setRecentlyViewed] = useState(() => JSON.parse(localStorage.getItem("recentlyViewedComponents") || "[]"));
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const [previewTheme, setPreviewTheme] = useState("dark");
-  const [activeTab, setActiveTab] = useState("preview");
+  const [activeTab, setActiveTab] = useState("code");
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const [editableProps, setEditableProps] = useState('{\n  "size": "md",\n  "variant": "primary"\n}');
 
@@ -262,6 +255,16 @@ function ViewComponents({ onToast }) {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get("category");
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    } else {
+      setSelectedCategory("All");
+    }
+  }, [location.search]);
+
   const categoryOptions = useMemo(() => {
     const componentDerived = components.map((item) => item.category).filter(Boolean);
     return ["All", ...new Set(componentDerived)];
@@ -328,22 +331,26 @@ function ViewComponents({ onToast }) {
     <main className="console-stage">
       <section className="console-window">
         <div className="console-main">
-          <section className="stats-row-modern">
-            <article className="stat-card-modern">
-              <span className="stat-value">⭐ 95/100</span>
-              <span className="stat-label">Popularity Score</span>
+          <section className="stats-grid">
+            <article className="stat-card">
+              <ComponentsIcon />
+              <span>Total Components</span>
+              <strong className="counter-value">{components.length}</strong>
             </article>
-            <article className="stat-card-modern">
-              <span className="stat-value">📦 444 Projects</span>
-              <span className="stat-label">Adoption Rate</span>
+            <article className="stat-card">
+              <DocsIcon />
+              <span>Categories</span>
+              <strong className="counter-value">{categoryOptions.length - 1}</strong>
             </article>
-            <article className="stat-card-modern">
-              <span className="stat-value">🚀 92%</span>
-              <span className="stat-label">Production Health</span>
+            <article className="stat-card">
+              <ChartIcon />
+              <span>Most Used</span>
+              <strong className="counter-value">{mostUsedCategory.name}</strong>
             </article>
-            <article className="stat-card-modern">
-              <span className="stat-value">📅 June 2026</span>
-              <span className="stat-label">Last Updated</span>
+            <article className="stat-card">
+              <EyeIcon />
+              <span>Recent Uploads</span>
+              <strong className="counter-value">{recentUploads}</strong>
             </article>
           </section>
 
@@ -353,15 +360,14 @@ function ViewComponents({ onToast }) {
               <p>Search, filter, favorite, compare, rate, and preview reusable design system assets.</p>
             </div>
             <div className="component-search-grid">
-              <div className="modern-search-wrap">
+              <label className="search-input-wrap compact">
                 <SearchIcon />
                 <input
-                  className="modern-search-input"
-                  placeholder="Search components..."
+                  placeholder="Component Name"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-              </div>
+              </label>
               <select value={activeCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 {categoryOptions.map((category) => (
                   <option value={category} key={category}>{category}</option>
@@ -428,9 +434,9 @@ function ViewComponents({ onToast }) {
             </div>
 
             {status === "loading" && (
-              <div className="component-grid-pro">
+              <div className="component-registry">
                 {[0, 1, 2].map((item) => (
-                  <article className="component-card-modern skeleton-card" key={item}>
+                  <article className="registry-row skeleton-card" key={item}>
                     <div>
                       <span className="skeleton-line strong" />
                       <span className="skeleton-line" />
@@ -448,98 +454,48 @@ function ViewComponents({ onToast }) {
               <p className="console-muted">No components are available yet.</p>
             )}
 
-            {status !== "loading" && <div className="component-grid-pro">
-              {filteredComponents.map((item) => {
-                const popularity = 85 + (item.name.length * 3) % 15;
-                const projectsCount = 100 + (item.name.length * 17) % 350;
-                return (
-                  <article className="component-card-modern" key={item.id}>
-                    <div>
-                      <div className="component-card-header">
-                        <span className="category-badge-modern">{item.category || "General"}</span>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                          <span className="version-badge-modern">v{item.version}</span>
-                          <span className="version-badge-modern" style={{ background: "rgba(45, 212, 191, 0.1)", color: "#2dd4bf" }}>
-                            {item.status || "Published"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toggleFavorite(item.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              boxShadow: "none",
-                              minHeight: "auto",
-                              padding: "4px",
-                              color: favorites.includes(item.id) ? "#2dd4bf" : "#64748b",
-                              fontSize: "1.1rem",
-                              cursor: "pointer"
-                            }}
-                            title={favorites.includes(item.id) ? "Unfavorite" : "Favorite"}
-                          >
-                            ★
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => toggleCompare(item.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              boxShadow: "none",
-                              minHeight: "auto",
-                              padding: "4px",
-                              color: comparisonIds.includes(item.id) ? "#2dd4bf" : "#64748b",
-                              fontSize: "0.9rem",
-                              fontWeight: "bold",
-                              cursor: "pointer"
-                            }}
-                            title="Compare"
-                          >
-                            {comparisonIds.includes(item.id) ? "Match" : "Diff"}
-                          </button>
-                          {localStorage.getItem("role") === "ADMIN" && (
-                            <button
-                              type="button"
-                              onClick={() => deleteComponent(item.id)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                boxShadow: "none",
-                                minHeight: "auto",
-                                padding: "4px",
-                                color: "#ef4444",
-                                cursor: "pointer"
-                              }}
-                              title="Delete"
-                            >
-                              <TrashIcon />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <h3 className="component-card-title">{item.name}</h3>
-                      <p className="component-card-desc">{item.description}</p>
+            {status !== "loading" && <div className="component-registry">
+              {filteredComponents.map((item) => (
+                <article className="registry-row registry-row-pro" key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <p>{item.description}</p>
+                    <div className="tag-row">
+                      {String(item.tags || "").split(",").filter(Boolean).slice(0, 4).map((tag) => (
+                        <small key={tag}>{tag.trim()}</small>
+                      ))}
                     </div>
-
-                    <div>
-                      <div className="component-card-stats">
-                        <span>Popularity: <strong>{popularity}%</strong></span>
-                        <span>Used in: <strong>{projectsCount} Projects</strong></span>
-                      </div>
-
-                      <div className="component-card-actions">
-                        <button type="button" className="btn-pill btn-pill-primary" onClick={() => openPreview(item)}>
-                          <EyeIcon /> Explore
-                        </button>
-                        <Link to={`/component/${item.id}`} className="btn-pill btn-pill-secondary">
-                          <DocsIcon /> Documentation
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+                  </div>
+                  <span>{item.category || "Uncategorized"} · v{item.version}</span>
+                  <div className="rating-row" aria-label={`${item.name} rating`}>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        type="button"
+                        className={ratings[item.id] >= rating ? "rating-active" : ""}
+                        key={rating}
+                        onClick={() => rateComponent(item.id, rating)}
+                        aria-label={`Rate ${rating}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => toggleFavorite(item.id)} className="secondary-button">
+                    {favorites.includes(item.id) ? "Favorited" : "Favorite"}
+                  </button>
+                  <button type="button" onClick={() => toggleCompare(item.id)} className="secondary-button">
+                    {comparisonIds.includes(item.id) ? "Selected" : "Compare"}
+                  </button>
+                  <button type="button" onClick={() => openPreview(item)}>
+                    <EyeIcon /> Open
+                  </button>
+                  {localStorage.getItem("role") === "ADMIN" && (
+                    <button type="button" onClick={() => deleteComponent(item.id)}>
+                      <TrashIcon /> Delete
+                    </button>
+                  )}
+                </article>
+              ))}
             </div>}
           </section>
 
@@ -567,174 +523,172 @@ function ViewComponents({ onToast }) {
       {selectedComponent && (
         <div className="modal-backdrop" role="presentation" onClick={() => setSelectedComponent(null)}>
           <section
-            className="preview-modal preview-modal-clean"
+            className={`preview-modal ${fullscreenPreview ? "preview-modal-fullscreen" : ""}`}
             role="dialog"
             aria-modal="true"
+            aria-labelledby="preview-title"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* Particles */}
-            <div className="preview-particles">
-              <div className="preview-particle" />
-              <div className="preview-particle" />
-              <div className="preview-particle" />
-              <div className="preview-particle" />
-              <div className="preview-particle" />
-            </div>
-
-            {/* Close Button */}
-            <button
-              type="button"
-              className="modal-close-btn"
-              onClick={() => setSelectedComponent(null)}
-              aria-label="Close modal"
-            >
-              <CloseIcon />
-            </button>
+            <header className="preview-header">
+              <div>
+                <p className="eyebrow">{selectedComponent.category || "Uncategorized"}</p>
+                <h2 id="preview-title">{selectedComponent.name}</h2>
+                <p className="console-muted">v{selectedComponent.version} · {selectedComponent.status}</p>
+              </div>
+              <div className="preview-toolbar">
+                <select value={previewTheme} onChange={(event) => setPreviewTheme(event.target.value)}>
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+                <select value={previewDevice} onChange={(event) => setPreviewDevice(event.target.value)}>
+                  <option value="desktop">Desktop</option>
+                  <option value="tablet">Tablet</option>
+                  <option value="mobile">Mobile</option>
+                </select>
+                <button type="button" className="secondary-button" onClick={() => setFullscreenPreview((current) => !current)}>
+                  {fullscreenPreview ? "Exit Fullscreen" : "Fullscreen"}
+                </button>
+                <button type="button" className="icon-button" onClick={() => setSelectedComponent(null)} aria-label="Close preview">
+                  <CloseIcon />
+                </button>
+              </div>
+            </header>
 
             <div className="preview-split-stage">
-              {/* Left Column: Component Preview Card */}
-              <div className="preview-pane-left-card">
-                <div className="preview-card-top">
-                  <span className="preview-card-category-icon">
-                    {getCategoryIcon(selectedComponent.category)}
-                  </span>
-                  <h2 className="preview-card-name">{selectedComponent.name}</h2>
-                  <p className="preview-card-description">{selectedComponent.description}</p>
+              <div className="preview-pane-left">
+                <div className="pane-header-mini">
+                  <h3><EyeIcon /> Interactive Stage</h3>
+                  <div className="stage-theme-dot" />
                 </div>
-
-                <div className="preview-card-badges">
-                  <span className="preview-card-badge">{selectedComponent.category || "General"}</span>
-                  <span className="preview-card-badge">{selectedComponent.status || "Published"}</span>
-                  <span className="preview-card-badge">v{selectedComponent.version || "1.0.0"}</span>
+                <div className={`component-preview-box preview-device-${previewDevice} preview-theme-${previewTheme}`}>
+                  {(() => {
+                    const PreviewComp = REAL_COMPONENTS_MAP[selectedComponent.name]?.Preview;
+                    return PreviewComp ? (
+                      <PreviewComp />
+                    ) : (
+                      <div className="no-preview-placeholder">
+                        {selectedComponent.previewImage && (
+                          <img src={selectedComponent.previewImage} alt="" className="fallback-preview-img" />
+                        )}
+                        <strong>{selectedComponent.name}</strong>
+                        <p>{selectedComponent.description}</p>
+                        <button type="button" onClick={() => handleUseComponent(selectedComponent)} className="primary-action-btn">
+                          Use Component
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
-
-                {/* Statistics Row */}
-                <div className="preview-card-stats-row">
-                  <div className="preview-stat-item">
-                    <span className="preview-stat-value">⭐ {85 + (selectedComponent.name.length * 3) % 15}/100</span>
-                    <span className="preview-stat-label">Popularity Score</span>
-                  </div>
-                  <div className="preview-stat-item">
-                    <span className="preview-stat-value">📦 {100 + (selectedComponent.name.length * 17) % 350} Projects</span>
-                    <span className="preview-stat-label">Adoption Rate</span>
-                  </div>
-                  <div className="preview-stat-item">
-                    <span className="preview-stat-value">🚀 {90 + (selectedComponent.name.length * 2) % 10}%</span>
-                    <span className="preview-stat-label">Production Health</span>
-                  </div>
-                  <div className="preview-stat-item">
-                    <span className="preview-stat-value">📅 June 2026</span>
-                    <span className="preview-stat-label">Last Updated</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="preview-card-actions">
-                  <button
-                    type="button"
-                    className={`btn-preview-card ${activeTab === "preview" ? "active" : ""}`}
-                    onClick={() => setActiveTab("preview")}
-                  >
-                    Preview
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preview-card"
-                    onClick={() => copyCode(selectedComponent.codeSnippet)}
-                  >
-                    Copy Code
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preview-card btn-preview-card-primary"
-                    onClick={() => handleUseComponent(selectedComponent)}
-                  >
-                    Add Project
-                  </button>
-                </div>
+                <label className="props-editor">
+                  <span>Interactive Props Simulator (JSON)</span>
+                  <textarea value={editableProps} onChange={(event) => setEditableProps(event.target.value)} />
+                </label>
               </div>
 
-              {/* Right Column: Tabbed Preview & Specs */}
-              <div className="preview-pane-right-panel">
-                <div className="tab-switcher-row-modern">
+              <div className="preview-pane-right">
+                <div className="tab-switcher-row">
                   <button
                     type="button"
-                    className={`tab-btn-modern ${activeTab === "preview" ? "active" : ""}`}
-                    onClick={() => setActiveTab("preview")}
-                  >
-                    Preview
-                  </button>
-                  <button
-                    type="button"
-                    className={`tab-btn-modern ${activeTab === "code" ? "active" : ""}`}
+                    className={`tab-btn ${activeTab === "code" ? "active" : ""}`}
                     onClick={() => setActiveTab("code")}
                   >
-                    Code
+                    <CodeIcon /> React Component Code
                   </button>
                   <button
                     type="button"
-                    className={`tab-btn-modern ${activeTab === "usage" ? "active" : ""}`}
+                    className={`tab-btn ${activeTab === "usage" ? "active" : ""}`}
                     onClick={() => setActiveTab("usage")}
                   >
-                    Usage
+                    <CodeIcon /> Usage Example
                   </button>
                   <button
                     type="button"
-                    className={`tab-btn-modern ${activeTab === "docs" ? "active" : ""}`}
+                    className={`tab-btn ${activeTab === "docs" ? "active" : ""}`}
                     onClick={() => setActiveTab("docs")}
                   >
-                    API Docs
+                    <DocsIcon /> Specs & API
                   </button>
                 </div>
 
-                <div className="tab-stage-content-modern">
-                  {activeTab === "preview" && (
-                    <div className="preview-tab-panel-modern">
-                      <div className="component-preview-box-modern">
-                        {(() => {
-                          const PreviewComp = REAL_COMPONENTS_MAP[selectedComponent.name]?.Preview;
-                          return PreviewComp ? (
-                            <PreviewComp />
-                          ) : (
-                            <div className="no-preview-placeholder-modern">
-                              <span className="fallback-category-icon-large">
-                                {getCategoryIcon(selectedComponent.category)}
-                              </span>
-                              <strong>{selectedComponent.name}</strong>
-                              <p>{selectedComponent.description}</p>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  )}
-
+                <div className="tab-stage-content">
                   {activeTab === "code" && (
-                    <div className="code-tab-panel-modern">
+                    <div className="code-tab-panel">
+                      <div className="code-panel-header">
+                        <span>JSX Template source</span>
+                        <button type="button" className="icon-text-button" onClick={() => copyCode(selectedComponent.codeSnippet)}>
+                          <CopyIcon /> Copy Template
+                        </button>
+                      </div>
                       <CodeHighlight code={selectedComponent.codeSnippet} />
                     </div>
                   )}
 
                   {activeTab === "usage" && (
-                    <div className="code-tab-panel-modern">
+                    <div className="code-tab-panel">
+                      <div className="code-panel-header">
+                        <span>Integration example code</span>
+                        <button type="button" className="icon-text-button" onClick={() => copyCode(selectedComponent.usageExample)}>
+                          <CopyIcon /> Copy Usage
+                        </button>
+                      </div>
                       <CodeHighlight code={selectedComponent.usageExample} />
                     </div>
                   )}
 
                   {activeTab === "docs" && (
-                    <div className="docs-clean-reader-container">
-                      {selectedComponent.documentation && selectedComponent.documentation.trim() ? (
-                        <div className="docs-clean-reader">
-                          {selectedComponent.documentation}
-                        </div>
-                      ) : (
-                        <div className="docs-clean-reader empty">
-                          No documentation available.
-                        </div>
-                      )}
+                    <div className="docs-tab-panel">
+                      <div className="docs-section">
+                        <h4>Functional Description</h4>
+                        <p className="docs-desc-p">{selectedComponent.description || "No description provided."}</p>
+                      </div>
                       
-                      <div className="docs-footer-link-modern">
-                        <Link className="inline-detail-link-modern" to={`/component/${selectedComponent.id}`} onClick={() => setSelectedComponent(null)}>
+                      <div className="docs-section">
+                        <h4>API References & Parameters</h4>
+                        {renderPropsTable(selectedComponent.propsTable)}
+                      </div>
+
+                      <div className="docs-meta-grid">
+                        <div>
+                          <strong>Category:</strong>
+                          <span>{selectedComponent.category || "General"}</span>
+                        </div>
+                        <div>
+                          <strong>Clearance:</strong>
+                          <span>{selectedComponent.status || "Published"}</span>
+                        </div>
+                        <div>
+                          <strong>Version:</strong>
+                          <span>v{selectedComponent.version || "1.0.0"}</span>
+                        </div>
+                        <div>
+                          <strong>Author:</strong>
+                          <span>{selectedComponent.createdBy || "Design System"}</span>
+                        </div>
+                      </div>
+
+                      <div className="docs-section">
+                        <h4>Installation Instructions</h4>
+                        <div className="installation-block">
+                          <code>npm install @design-system/{selectedComponent.name?.toLowerCase().replace(/\s+/g, "-")}</code>
+                          <button type="button" className="copy-icon-btn" onClick={() => copyCode(`npm install @design-system/${selectedComponent.name?.toLowerCase().replace(/\s+/g, "-")}`)}>
+                            <CopyIcon />
+                          </button>
+                        </div>
+                        <p className="sub-install-notes">{selectedComponent.installationGuide}</p>
+                      </div>
+
+                      <div className="docs-section">
+                        <h4>Accessibility Compliance (a11y)</h4>
+                        <p className="sub-install-notes">{selectedComponent.accessibilityNotes}</p>
+                      </div>
+
+                      <div className="docs-section">
+                        <h4>Design Best Practices</h4>
+                        <p className="sub-install-notes">{selectedComponent.bestPractices}</p>
+                      </div>
+
+                      <div className="docs-footer-link">
+                        <Link className="inline-detail-link" to={`/component/${selectedComponent.id}`}>
                           Open Dedicated Documentation Page →
                         </Link>
                       </div>

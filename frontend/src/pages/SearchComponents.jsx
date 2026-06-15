@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CodeIcon, DocsIcon, EyeIcon, SearchIcon } from "../components/Icons";
-import api from "../api/axios";
+import api from "../api/axios";import "../styles/pages/SearchComponents.css";
+
 
 const sampleQueries = [
   "Form validation components",
@@ -76,17 +77,16 @@ function SearchComponents({ onToast }) {
               <span>Intelligent Search Index</span>
             </div>
 
-            <form className="semantic-search-box" onSubmit={search} style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "16px" }}>
-              <div className="modern-search-wrap" style={{ maxWidth: "480px" }}>
+            <form className="semantic-search-box" onSubmit={search}>
+              <label className="search-input-wrap">
                 <SearchIcon />
                 <input
-                  className="modern-search-input"
-                  placeholder="Describe what you want to build..."
+                  placeholder="Describe what you want to build (e.g. form with validation checks, timeline audit)..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-              </div>
-              <button type="submit" disabled={status === "loading"} className="btn-pill btn-pill-primary" style={{ flex: "none", minWidth: "120px" }}>
+              </label>
+              <button type="submit" disabled={status === "loading"}>
                 {status === "loading" ? "Searching..." : "Search"}
               </button>
             </form>
