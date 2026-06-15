@@ -2,25 +2,26 @@ services:
   # 1. FastAPI Gateway Web Service
   - type: web
     name: modularcomponentshowcase-gateway
-    env: python
+    runtime: python
     rootDir: gateway
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free
     envVars:
       - key: SPRING_BOOT_URL
-        value: https://modularcomponentshowcase-backend.onrender.com/gateway
+        value: https://modularcomponentshowcase-backend.onrender.com
       - key: MONGO_URL
         value: mongodb+srv://admin:admin@cluster0.omh4o3w.mongodb.net/modular_showcase?retryWrites=true&w=majority&appName=Cluster0
       - key: MONGO_DATABASE
         value: modular_showcase
 
   # 2. React Frontend Static Site
-  - type: static
+  - type: web
     name: modularcomponentshowcase
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: https://modularcomponentshowcase-gateway.onrender.com/gateway
