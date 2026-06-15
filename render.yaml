@@ -9,7 +9,7 @@ services:
     plan: free
     envVars:
       - key: SPRING_BOOT_URL
-        value: https://modularcomponentshowcase-backend.onrender.com
+        value: https://modularcomponentshowcase-backend.onrender.com/gateway
       - key: MONGO_URL
         value: mongodb+srv://admin:admin@cluster0.omh4o3w.mongodb.net/modular_showcase?retryWrites=true&w=majority&appName=Cluster0
       - key: MONGO_DATABASE
@@ -22,7 +22,7 @@ services:
     buildCommand: npm install && npm run build
     publishPath: dist
     envVars:
-      - key: VITE_API_BASE_URL
+      - key: VITE_API_URL
         value: https://modularcomponentshowcase-gateway.onrender.com/gateway
     routes:
       - type: rewrite
